@@ -1,0 +1,8 @@
+Access Jar Guide
+
+Since I'm using Visual Studio Code IDE (Blue Colored Icon), Here is the guide on how to run the jar file:
+- First, download the extension pack for Java.
+  NOTE: Search for "Extension Pack for Java" that's powered by microsoft.
+- Once it's done, run the jar file by entering the following command:
+
+<file directory>/ java -jar bit203assignment1.jar
