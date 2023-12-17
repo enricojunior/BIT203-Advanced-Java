@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.time.LocalDate;
 // Import the DateTimeFormatter to format the date according to my selection
 import java.time.format.DateTimeFormatter;
+// Import the IO Serializable to save and load data
+import java.io.Serializable;
 
 /**
  * The HELPAid class has a special purpose where this class maintain 
@@ -22,7 +24,7 @@ import java.time.format.DateTimeFormatter;
  * Furthermore, this class also contains special methods from various different 
  * classes where most of the methods indicated supports the console validations
  */
-public class HELPAid {
+public class HELPAid implements Serializable {
     // List of the collections attributes
     private ArrayList<Organization> orgList;
     private ArrayList<User> userList;
@@ -111,17 +113,12 @@ public class HELPAid {
     public ArrayList<OrganizationRep> getOrgRepList(){
         // Create an empty OrganizationRep ArrayList
         ArrayList<OrganizationRep> orgRepList = new ArrayList<>();
-        // Get each Users from the userList
-        for(User myUser : getUserList()){
-            // Check if the User is an instance of OrganizationRep
-            if(myUser.isOrgRep()){
-                // apply casting
-                OrganizationRep dctOrg = ((OrganizationRep) myUser);
-                // Add the registered Organization Representatives to the arrayList
-                orgRepList.add(dctOrg);
-            }
-        }
-        // Return list of registered Organization Representatives
+        // Get each users from the userList
+        // Stream and iterate, filter the data where the user is an instance of OrganizationRep
+        // Map to transform and apply casting and get each Representative and add it to the empty array list
+        userList.stream().filter(tct -> tct.isOrgRep()).map(tct -> (OrganizationRep) tct)
+                         .forEach(orgRepList::add);
+        // Return list of the registered Organization Representative
         return orgRepList;
     }
 
@@ -132,17 +129,12 @@ public class HELPAid {
     public ArrayList<Applicant> getApplicantList(){
         // Create an empty Applicant ArrayList
         ArrayList<Applicant> appList = new ArrayList<>();
-        // Get each Users from the userList
-        for(User myUser : getUserList()){
-            // Check if the User is an instance of Applicant
-            if(myUser.isApplicant()){
-                // apply casting
-                Applicant dctApp = ((Applicant) myUser);
-                // // Add the registered Applicants to the arrayList
-                appList.add(dctApp);
-            }
-        }
-        // Return list of registered Applicants
+        // Get each users from the userList
+        // Stream and iterate, filter the data where the user is an instance of Applicant
+        // Map to transform and apply casting and get each Applicants and add it to the empty array list
+        userList.stream().filter(tct -> tct.isApplicant()).map(tct -> (Applicant) tct) 
+                         .forEach(appList::add);
+        // Return list of the registered Applicants
         return appList;
     }
 
@@ -162,13 +154,10 @@ public class HELPAid {
         // Create a new empty Appeal ArrayList 
         ArrayList<Appeal> CrAppealList = new ArrayList<>();
         // Get each current appeals in the List of Appeals
-        for(Appeal CrAppeal : getAppealList()){
-            // Condition if the outcome status is set to PENDING
-            if(CrAppeal.getOutcome().equals("PENDING")){
-                // Add the appeals with the outcome status of PENDING
-                CrAppealList.add(CrAppeal);
-            }
-        }
+        // filter the Appeal List by outcome and check if the outcome status is set to PENDING
+        // Add the appeals with the outcome status of PENDING
+        getAppealList().stream().filter(tct -> tct.getOutcome().equals("PENDING"))
+                       .forEach(CrAppealList::add);
         // Return the List of Current Appeals
         return CrAppealList;
     }
@@ -182,13 +171,10 @@ public class HELPAid {
         // Create a new empty Appeal ArrayList
         ArrayList<Appeal> CrSpcAppealList = new ArrayList<>();
         // Get each current Appeals in the List of Appeals
-        for(Appeal CrSpcAppeal : getAppealList()){
-            // Check if the status is set to PENDING and the Appeal is made by this Organization
-            if(CrSpcAppeal.getOutcome().equals("PENDING") && CrSpcAppeal.getThisOrg() == thisOrg){
-                // Add the appeals to the ArrayList
-                CrSpcAppealList.add(CrSpcAppeal);
-            }
-        }
+        // filter the Appeal List by outcome and its specified Organization
+        // Add the appeals with the outcome of PENDING and made by the specified Organization object
+        getAppealList().stream().filter(tct -> tct.getOutcome().equals("PENDING") && tct.getThisOrg() == thisOrg)
+                              .forEach(CrSpcAppealList::add);
         // Return the List of Current Appeals
         return CrSpcAppealList;
     }
@@ -198,16 +184,12 @@ public class HELPAid {
      * @return PstAppealList - ArrayList<Appeal>
      */
     public ArrayList<Appeal> getPstAppealList(){
-        // Create new empty Appeal ArrayList
+        // Create a new empty array list of Appeals
         ArrayList<Appeal> PstAppealList = new ArrayList<>();
-        // Get each past appeals in the List of Appeals
-        for(Appeal PstAppeal : getAppealList()){
-            // Condition if the outcome status is set to APPROVED
-            if(PstAppeal.getOutcome().equals("APPROVED")){
-                // Add the appeals with the outcome status of APPROVED
-                PstAppealList.add(PstAppeal);
-            }
-        }
+        // Implementing streams and lambda expressions, filter it by the outcome and get
+        // each appeals its outcome that is already set to APPROVED
+        getAppealList().stream().filter(tct -> tct.getOutcome().equals("APPROVED"))
+                       .forEach(PstAppealList::add);
         // Return the List of Past Appeals
         return PstAppealList;
     }
@@ -248,15 +230,16 @@ public class HELPAid {
      * @return boolean
      */
     public boolean foundOrgByID(int designatedID){
-        // Get each registered organizations in the list of organizations
-        for(Organization myOrg : orgList){
-            // Condition if the organization was found by ID
-            if(myOrg.getOrgID() == designatedID){
-                // Returns true (If found)
-                return true;
-            }
+        // Stream and iterate the Organization List according to the specified ID
+        // filter the Organization according to the ID
+        Organization myOrg = orgList.stream().filter(tct -> tct.getOrgID() == designatedID)
+                                             .findFirst().orElse(null);
+        // Check if the condition is not null
+        if(myOrg != null){
+            // If not, returns true
+            return true;
         }
-        // Returns false otherwise (If not found)
+        // If yes, returns false otherwise
         return false;
     }
 
@@ -266,15 +249,16 @@ public class HELPAid {
      * @return boolean 
      */
     public boolean foundAplByID(int designatedID){
-        // Get each Appeals in the List of Appeals
-        for(Appeal myApl : appealList){
-            // Condition if the Appeal was found by ID
-            if(myApl.getAppealID() == designatedID){
-                // Returns true (If found)
-                return true;
-            }
+        // Stream and iterate the Appeal List according to the specified ID
+        // filter the Appeal according to the ID
+        Appeal myApl = getAppealList().stream().filter(tct -> tct.getAppealID() == designatedID)
+                                      .findFirst().orElse(null);
+        // Check if the condition is not null
+        if(myApl != null){
+            // If not, returns true
+            return true;
         }
-        // Returns false otherwise (If not found)
+        // If yes, returns false otherwise
         return false;
     }
 
@@ -299,22 +283,14 @@ public class HELPAid {
      * under specified Organization through the Organization ID
      * @param orgID
      * @return List of Applicants
-     */
+     */ 
     public ArrayList<Applicant> getRegAppByOrgID(int orgID){
         // Create an empty Applicant ArrayList
         ArrayList<Applicant> getAplByOrgIDList = new ArrayList<Applicant>();
-        // Get each Users from the userList
-        for(User myUser : userList){
-            // Check if the User is an instance of Applicant
-            if(myUser.isApplicant()){
-                Applicant sctApplicant = ((Applicant) myUser);
-                // Check if the Specified Organization ID was found
-                if(sctApplicant.getSpecifiedOrg().getOrgID() == orgID){
-                    // Add the registered applicants to the arrayList
-                    getAplByOrgIDList.add(sctApplicant);
-                }
-            }
-        }
+        // Stream and iterate the Registered Applicant according to the specified Organization by orgID
+        // filter the registered Applicant and add each Applicant to the empty Applicant ArrayList
+        getApplicantList().stream().filter(tct -> tct.getSpecifiedOrg().getOrgID() == orgID)
+                                   .forEach(getAplByOrgIDList::add);
         // Returns the List of Applicants
         return getAplByOrgIDList;
     }
@@ -325,20 +301,12 @@ public class HELPAid {
      * @return sctApplicant - Applicant
      */
     public Applicant getApplicantByID(int sctID){
-        // Get each Users from the ArrayList
-        for(User myUser : userList){
-            // Check if the User is an instance of Applicant
-            if(myUser.isApplicant()){
-                Applicant sctApplicant = ((Applicant) myUser);
-                // Check if the Applicant's ID was found
-                if(sctApplicant.getIDNo() == sctID){
-                    // Return the specified Applicant (If found)
-                    return sctApplicant;
-                }
-            }
-        }
-        // Return null (If not found)
-        return null;
+        // This time, I make some modifications for the code, 
+        // where I'm implementing streams instead of using conventional way
+        // filter the data from the userList to get the list of registered applicant
+        // Applying map to transform and down-cast to Applicant, and filter it according to the ID
+        return userList.stream().filter(tct -> tct instanceof Applicant).map(tct -> (Applicant) tct)
+                       .filter(tct -> tct.getIDNo() == sctID).findFirst().orElse(null);
     }
 
     /**
@@ -347,19 +315,17 @@ public class HELPAid {
      * @return boolean
      */
     public boolean VerifyAppByID(int sctID){
-        // Get each Users from the ArrayList
-        for(User myUser : userList){
-            // Check if the User is an instance of Applicant
-            if(myUser.isApplicant()){
-                Applicant sctApplicant = ((Applicant) myUser);
-                // Check if the Applicant's ID was found
-                if(sctApplicant.getIDNo() == sctID){
-                    // Returns true (If found)
-                    return true;
-                }
-            }
+        // This time, I make some modifications for the code, 
+        // where I'm implementing streams instead of using conventional way
+        // filter the data from the userList to get the list of registered applicant
+        // Applying map to transform and down-cast to Applicant, and filter it according to the ID
+        Applicant sctApplicant = getApplicantList().stream().filter(tct -> tct.getIDNo() == sctID)
+                                                   .findFirst().orElse(null);
+        // Check if the condition is not null
+        if(sctApplicant != null){
+            // Returns true, if the Applicant was found by ID
+            return true;
         }
-        // Returns false (If not found)
         return false;
     }
 
@@ -369,16 +335,10 @@ public class HELPAid {
      * @return myOrg - Organization
      */
     public Organization getOrganizationByID(int designatedID){
-        // Get each Organizations from the ArrayList
-        for(Organization myOrg : orgList){
-            // Check if the Organization ID was found
-            if(myOrg.getOrgID() == designatedID){
-                // Returns the Organization object (If found)
-                return myOrg;
-            }
-        }
-        // Returns null otherwise (If not found)
-        return null;
+        // This time, I make some modifications for the code, 
+        // where I'm implementing streams instead of using conventional way
+        return getOrgList().stream().filter(tct -> tct.getOrgID() == designatedID)
+                           .findFirst().orElse(null);
     }
 
     /**
@@ -387,16 +347,10 @@ public class HELPAid {
      * @return myApl - Appeal
      */
     public Appeal getAppealByID(int designatedID){
-        // Get each Appeals in the ArrayList
-        for(Appeal myApl : appealList){
-            // Check if the Appeal was found by ID
-            if(myApl.getAppealID() == designatedID){
-                // Returns the Appeal object (If found)
-                return myApl;
-            }
-        }
-        // Returns null otherwise (If not found)
-        return null;
+        // This time, I make some modifications for the code, 
+        // where I'm implementing streams instead of using conventional way
+        return getAppealList().stream().filter(tct -> tct.getAppealID() == designatedID)
+                              .findFirst().orElse(null);
     }
 
     /**
